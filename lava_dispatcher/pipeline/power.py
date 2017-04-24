@@ -129,6 +129,27 @@ class PDUReboot(AdjuvantAction):
         connection = super(PDUReboot, self).run(connection, max_end_time, args)
         if not self.adjuvant:
             return connection
+        HardReset().run(connection, max_end_time, args)
+        try:
+            self.wait(connection)
+        except TestError:
+            raise InfrastructureError("%s failed to reset device" % self.key())
+        self.data[PDUReboot.key()] = False
+        return connection
+
+
+class HardReset(Action):
+    """
+    Issues the hard reset command via the PDU
+    """
+    def __init__(self):
+        super(HardReset, self).__init__()
+        self.name = "hard-reset"
+        self.summary = "send hard-reset command"
+        self.description = "reset device using PDU"
+
+    def run(self, connection, max_end_time, args=None):
+        connection = super(HardReset, self).run(connection, max_end_time, args)
         if not self.job.device.hard_reset_command:
             raise InfrastructureError("Hard reset required but not defined for %s." % self.job.device['hostname'])
         command = self.job.device.hard_reset_command
@@ -139,15 +160,9 @@ class PDUReboot(AdjuvantAction):
         else:
             if not self.run_command(command.split(' '), allow_silent=True):
                 raise InfrastructureError("%s failed" % command)
-        try:
-            self.wait(connection)
-        except TestError:
-            raise InfrastructureError("%s failed to reset device" % self.key())
-        self.data[PDUReboot.key()] = False
         self.results = {'status': 'success'}
         self.job.device.power_state = 'on'
         return connection
-
 
 class PowerOn(Action):
     """
