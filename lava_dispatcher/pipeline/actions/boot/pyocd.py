@@ -26,7 +26,6 @@ from lava_dispatcher.pipeline.action import (
 from lava_dispatcher.pipeline.logical import Boot, RetryAction
 from lava_dispatcher.pipeline.actions.boot import BootAction
 from lava_dispatcher.pipeline.power import HardReset
-from lava_dispatcher.pipeline.connections.serial import ConnectDevice
 from lava_dispatcher.pipeline.utils.shell import infrastructure_error
 from lava_dispatcher.pipeline.utils.strings import substitute
 
@@ -80,8 +79,6 @@ class BootPyOCDRetry(RetryAction):
         self.internal_pipeline = Pipeline(parent=self, job=self.job, parameters=parameters)
         self.internal_pipeline.add_action(HardReset())
         self.internal_pipeline.add_action(FlashPyOCDAction())
-        self.internal_pipeline.add_action(HardReset())
-        self.internal_pipeline.add_action(ConnectDevice())
 
 
 class FlashPyOCDAction(Action):

@@ -34,6 +34,8 @@ from lava_dispatcher.pipeline.logical import (
     LavaTest,
     RetryAction,
 )
+from lava_dispatcher.pipeline.power import HardReset
+from lava_dispatcher.pipeline.connections.serial import ConnectDevice
 
 
 class TestMonitor(LavaTest):
@@ -42,7 +44,7 @@ class TestMonitor(LavaTest):
     """
     def __init__(self, parent, parameters):
         super(TestMonitor, self).__init__(parent)
-        self.action = TestMonitorAction()
+        self.action = TestMonitorRetry()
         self.action.job = self.job
         self.action.section = self.action_type
         parent.add_action(self.action, parameters)
@@ -82,6 +84,8 @@ class TestMonitorRetry(RetryAction):
 
     def populate(self, parameters):
         self.internal_pipeline = Pipeline(parent=self, job=self.job, parameters=parameters)
+        self.internal_pipeline.add_action(HardReset())
+        self.internal_pipeline.add_action(ConnectDevice())
         self.internal_pipeline.add_action(TestMonitorAction())
 
 
