@@ -478,6 +478,9 @@ class Action(object):  # pylint: disable=too-many-instance-attributes,too-many-p
         except ValueError:
             raise LAVABug("Action results need to be a dictionary")
 
+    def clear_errors(self):
+        self.__errors__ = []
+
     def validate(self):
         """
         This method needs to validate the parameters to the action. For each

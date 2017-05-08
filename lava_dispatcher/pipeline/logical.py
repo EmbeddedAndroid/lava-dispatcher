@@ -79,6 +79,9 @@ class RetryAction(Action):
                                             key='connection', value=connection)
                     raise
 
+                # Clear Errors if we are going to retry
+                self.clear_errors()
+
                 # Wait some time before retrying
                 time.sleep(self.sleep)
 
