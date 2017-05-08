@@ -83,7 +83,7 @@ class RetryAction(Action):
                 time.sleep(self.sleep)
 
         # If we are repeating, check that all repeat were a success.
-        if not self.valid:
+        if not self.valid and 'repeat' in self.parameters:
             self.errors = "%s retries failed for %s" % (self.retries, self.name)
             res = 'failed' if self.errors else 'success'
             self.set_namespace_data(action='boot', label='shared', key='boot-result', value=res)
