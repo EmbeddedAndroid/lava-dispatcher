@@ -291,7 +291,6 @@ class Pipeline(object):  # pylint: disable=too-many-instance-attributes
                                                 action_max_end_time, args)
             except LAVAError as exc:
                 exc_message = str(exc)
-                action.errors = exc_message
                 # set results including retries
                 if "boot-result" not in action.data:
                     action.data['boot-result'] = 'failed'
@@ -301,7 +300,6 @@ class Pipeline(object):  # pylint: disable=too-many-instance-attributes
             except Exception as exc:
                 exc_message = str(exc)
                 action.logger.exception(traceback.format_exc())
-                action.errors = exc_message
                 # Raise a LAVABug that will be correctly classified later
                 raise LAVABug(exc_message)
             finally:
@@ -554,19 +552,9 @@ class Action(object):  # pylint: disable=too-many-instance-attributes,too-many-p
             # the errors property doesn't support removing errors
             errors = []
             if sys.version > '3':
-                if exc.output:
-                    errors.append(exc.output.strip().decode('utf-8'))
-                else:
-                    errors.append(str(exc))
                 msg = '[%s] command %s\nmessage %s\noutput %s\n' % (
                     self.name, [i.strip() for i in exc.cmd], str(exc), str(exc).split('\n'))
             else:
-                if exc.output:
-                    errors.append(exc.output.strip())
-                elif exc.message:
-                    errors.append(exc.message)
-                else:
-                    errors.append(str(exc))
                 msg = "[%s] command %s\nmessage %s\noutput %s\nexit code %s" % (
                     self.name, [i.strip() for i in exc.cmd], [i.strip() for i in exc.message],
                     exc.output.split('\n'), exc.returncode)
