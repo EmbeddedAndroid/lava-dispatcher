@@ -135,8 +135,6 @@ class FastbootAction(DeployAction):  # pylint:disable=too-many-instance-attribut
             self.internal_pipeline.add_action(PowerOn())
         else:
             self.internal_pipeline.add_action(EnterFastbootAction())
-        self.internal_pipeline.add_action(WaitUSBDeviceAction(
-            device_actions=['add']))
 
         fastboot_dir = self.mkdtemp()
         image_keys = list(parameters['images'].keys())
@@ -154,7 +152,6 @@ class FastbootAction(DeployAction):  # pylint:disable=too-many-instance-attribut
                    self.test_needs_deployment(parameters):
                     self.internal_pipeline.add_action(
                         DeployDeviceEnvironment())
-        self.internal_pipeline.add_action(LxcAddDeviceAction())
         self.internal_pipeline.add_action(FastbootFlashAction())
 
 
@@ -188,37 +185,28 @@ class EnterFastbootAction(DeployAction):
 
     def run(self, connection, max_end_time, args=None):
         connection = super(EnterFastbootAction, self).run(connection, max_end_time, args)
-        # this is the device namespace - the lxc namespace is not accessible
-        lxc_name = None
-        protocol = [protocol for protocol in self.job.protocols if protocol.name == LxcProtocol.name][0]
-        if protocol:
-            lxc_name = protocol.lxc_name
-        if not lxc_name:
-            self.errors = "Unable to use fastboot"
-            return connection
-        self.logger.debug("[%s] lxc name: %s", self.parameters['namespace'], lxc_name)
         fastboot_serial_number = self.job.device['fastboot_serial_number']
 
         # Try to enter fastboot mode with adb.
         adb_serial_number = self.job.device['adb_serial_number']
-        adb_cmd = ['lxc-attach', '-n', lxc_name, '--', 'adb', '-s',
+        adb_cmd = ['adb', '-s',
                    adb_serial_number, 'devices']
         command_output = self.run_command(adb_cmd, allow_fail=True)
         if command_output and adb_serial_number in command_output:
             self.logger.debug("Device is in adb: %s", command_output)
-            adb_cmd = ['lxc-attach', '-n', lxc_name, '--', 'adb',
+            adb_cmd = ['adb',
                        '-s', adb_serial_number, 'reboot-bootloader']
             self.run_command(adb_cmd)
             return connection
 
         # Enter fastboot mode with fastboot.
         fastboot_opts = self.job.device['fastboot_options']
-        fastboot_cmd = ['lxc-attach', '-n', lxc_name, '--', 'fastboot', '-s',
+        fastboot_cmd = ['fastboot', '-s',
                         fastboot_serial_number, 'devices'] + fastboot_opts
         command_output = self.run_command(fastboot_cmd)
         if command_output and fastboot_serial_number in command_output:
             self.logger.debug("Device is in fastboot: %s", command_output)
-            fastboot_cmd = ['lxc-attach', '-n', lxc_name, '--', 'fastboot',
+            fastboot_cmd = ['fastboot',
                             '-s', fastboot_serial_number,
                             'reboot-bootloader'] + fastboot_opts
             command_output = self.run_command(fastboot_cmd)
@@ -260,14 +248,6 @@ class FastbootFlashAction(DeployAction):
 
     def run(self, connection, max_end_time, args=None):  # pylint: disable=too-many-locals
         connection = super(FastbootFlashAction, self).run(connection, max_end_time, args)
-        # this is the device namespace - the lxc namespace is not accessible
-        lxc_name = None
-        protocol = [protocol for protocol in self.job.protocols if protocol.name == LxcProtocol.name][0]
-        if protocol:
-            lxc_name = protocol.lxc_name
-        if not lxc_name:
-            self.errors = "Unable to use fastboot"
-            return connection
         # Order flash commands so that some commands take priority over others
         flash_cmds_order = self.job.device['flash_cmds_order']
         namespace = self.parameters.get('namespace', 'common')
@@ -279,16 +259,15 @@ class FastbootFlashAction(DeployAction):
             src = self.get_namespace_data(action='download-action', label=flash_cmd, key='file')
             if not src:
                 continue
-            dst = copy_to_lxc(lxc_name, src, self.job.parameters['dispatcher'])
             sequence = self.job.device['actions']['boot']['methods'].get(
                 'fastboot', [])
             if 'no-flash-boot' in sequence and flash_cmd in ['boot']:
                 continue
             serial_number = self.job.device['fastboot_serial_number']
             fastboot_opts = self.job.device['fastboot_options']
-            fastboot_cmd = ['lxc-attach', '-n', lxc_name, '--', 'fastboot',
+            fastboot_cmd = ['fastboot',
                             '-s', serial_number, 'flash', flash_cmd,
-                            dst] + fastboot_opts
+                            src] + fastboot_opts
             command_output = self.run_command(fastboot_cmd)
             if command_output and 'error' in command_output:
                 raise InfrastructureError("Unable to flash %s using fastboot: %s" %
@@ -318,25 +297,11 @@ class FastbootFlashAction(DeployAction):
                                                 allow_silent=True):
                             raise InfrastructureError("%s failed" % command)
                 else:
-                    fastboot_cmd = ['lxc-attach', '-n', lxc_name, '--',
-                                    'fastboot', '-s', serial_number,
+                    fastboot_cmd = ['fastboot', '-s', serial_number,
                                     'reboot-bootloader'] + fastboot_opts
                     command_output = self.run_command(fastboot_cmd)
                     if command_output and 'error' in command_output:
                         raise InfrastructureError(
                             "Unable to reboot-bootloader: %s"
                             % (command_output))
-                self.logger.info("Get USB device(s) ...")
-                device_paths = []
-                while True:
-                    device_paths = get_udev_devices(self.job,
-                                                    logger=self.logger)
-                    if device_paths:
-                        break
-                for device in device_paths:
-                    lxc_cmd = ['lxc-device', '-n', lxc_name, 'add',
-                               os.path.realpath(device)]
-                    log = self.run_command(lxc_cmd)
-                    self.logger.debug(log)
-                    self.logger.debug("%s: device %s added", lxc_name, device)
         return connection
