@@ -85,7 +85,7 @@ class TestMonitorRetry(RetryAction):
     def populate(self, parameters):
         self.internal_pipeline = Pipeline(parent=self, job=self.job, parameters=parameters)
         self.internal_pipeline.add_action(HardReset())
-        self.internal_pipeline.add_action(ConnectDevice())
+        self.internal_pipeline.add_action(ConnectDevice(force_reconnect=True))
         self.internal_pipeline.add_action(TestMonitorAction())
 
 

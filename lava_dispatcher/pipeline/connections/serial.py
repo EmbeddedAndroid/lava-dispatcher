@@ -35,13 +35,14 @@ class ConnectDevice(Action):
     Inherit from this class and change the session_class and/or shell_class for different behaviour.
     """
 
-    def __init__(self):
+    def __init__(self, force_reconnect=False):
         super(ConnectDevice, self).__init__()
         self.name = "connect-device"
         self.summary = "run connection command"
         self.description = "use the configured command to connect serial to the device"
         self.session_class = ShellSession  # wraps the pexpect and provides prompt_str access
         self.shell_class = ShellCommand  # runs the command to initiate the connection
+        self.force_reconnect = force_reconnect
 
     def validate(self):
         super(ConnectDevice, self).validate()
@@ -63,7 +64,7 @@ class ConnectDevice(Action):
             parameters = {"namespace": connection_namespace}
         connection = self.get_namespace_data(
             action='shared', label='shared', key='connection', deepcopy=False, parameters=parameters)
-        if connection:
+        if connection and not self.force_reconnect:
             self.logger.debug("Already connected")
             return connection
         elif connection_namespace:
