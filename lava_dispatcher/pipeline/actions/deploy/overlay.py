@@ -460,8 +460,8 @@ class CompressOverlay(Action):
                 os.chdir(location)
                 tar.add(".%s" % lava_test_results_dir)
                 # ssh authorization support
-                if os.path.exists('./root/'):
-                    tar.add(".%s" % '/root/')
+                if os.path.exists('./home/'):
+                    tar.add(".%s" % '/home/')
         except tarfile.TarError as exc:
             self.errors = "Unable to create lava overlay tarball: %s" % exc
             raise InfrastructureError("Unable to create lava overlay tarball: %s" % exc)
@@ -534,7 +534,7 @@ class SshAuthorize(Action):
             # secondary connections only
             return connection
         self.logger.info("Adding SSH authorisation for %s.pub", os.path.basename(output_file))
-        user_sshdir = os.path.join(location, 'root', '.ssh')
+        user_sshdir = os.path.join(location, 'home', 'root', '.ssh')
         if not os.path.exists(user_sshdir):
             os.makedirs(user_sshdir, 0o755)
         # if /root/.ssh/authorized_keys exists in the test image it will be overwritten
