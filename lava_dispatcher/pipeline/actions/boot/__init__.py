@@ -112,6 +112,10 @@ class AutoLoginAction(Action):
                 if 'password' not in params:
                     self.errors = "'password' is mandatory if 'password_prompt' is used in auto_login"
 
+            if 'login_commands' in params:
+                if not isinstance(params['login_commands'], list):
+                    self.errors = "login_commands must be a list"
+
         prompts = self.parameters.get('prompts', None)
         if prompts is None:
             self.errors = "'prompts' is mandatory for AutoLoginAction"
@@ -221,6 +225,25 @@ class AutoLoginAction(Action):
                         raise JobError("Password prompt not matched, please update the job definition with the correct one.")
                 self.logger.debug("Sending password %s", params['password'])
                 connection.sendline(params['password'], delay=self.character_delay)
+                # clear the Password pattern
+                connection.prompt_str = list(self.parameters.get('prompts', []))
+
+            if 'login_commands' in params:
+                self.logger.info("Waiting for prompt")
+                 # wait for a prompt
+                index = self.wait(connection, max_end_time)
+                self.logger.debug("Matched prompt #%s: %s", index, connection.prompt_str[index])
+                self.logger.info("Sending login commands")
+                for command in params['login_commands']:
+                    self.logger.debug("Sending login command: %s" % command)
+                    connection.sendline(command, delay=self.character_delay)
+                    connection.prompt_str = list(self.parameters.get('prompts', []))
+                    index = self.wait(connection, max_end_time)
+                    self.logger.debug("Matched prompt #%s: %s", index, connection.prompt_str[index])
+                    if connection.prompt_str[index] == LOGIN_TIMED_OUT_MSG:
+                        raise JobError("Prompt not matched, please update the job definition with the correct one.")
+                # clear the console
+                connection.sendline(" ", delay=self.character_delay)
                 # clear the Password pattern
                 connection.prompt_str = list(self.parameters.get('prompts', []))
 
