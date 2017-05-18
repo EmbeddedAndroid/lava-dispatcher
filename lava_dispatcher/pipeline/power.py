@@ -96,7 +96,7 @@ class RebootDevice(Action):
         if reboot_prompt:
             self.reboot_prompt = reboot_prompt
         try:
-            self.wait(connection)
+            raise TestError
         except TestError:
             self.logger.info("Wait for prompt after soft reboot failed")
             self.results = {'status': "failed"}
@@ -129,7 +129,18 @@ class PDUReboot(AdjuvantAction):
         connection = super(PDUReboot, self).run(connection, max_end_time, args)
         if not self.adjuvant:
             return connection
-        HardReset().run(connection, max_end_time, args)
+        if not self.job.device.hard_reset_command:
+            raise InfrastructureError("Hard reset required but not defined for %s." % self.job.device['hostname'])
+        command = self.job.device.hard_reset_command
+        if isinstance(command, list):
+            for cmd in command:
+                if not self.run_command(cmd.split(' '), allow_silent=True):
+                    raise InfrastructureError("%s failed" % cmd)
+        else:
+            if not self.run_command(command.split(' '), allow_silent=True):
+                raise InfrastructureError("%s failed" % command)
+        self.results = {'status': 'success'}
+        self.job.device.power_state = 'on'
         try:
             self.wait(connection)
         except TestError:
