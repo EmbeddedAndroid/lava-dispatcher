@@ -396,8 +396,7 @@ class BootloaderCommandOverlay(Action):
             dtb_addr = self.job.device['parameters'][self.bootcommand]['dtb']
             ramdisk_addr = self.job.device['parameters'][self.bootcommand]['ramdisk']
 
-            if not self.get_namespace_data(action='tftp-deploy', label='tftp', key='ramdisk') \
-                    and not self.get_namespace_data(action='download-action', label='file', key='ramdisk'):
+            if self.get_namespace_data(action='compress-ramdisk', label='file', key='ramdisk') == '':
                 ramdisk_addr = '-'
 
             substitutions['{BOOTX}'] = "%s %s %s %s" % (
