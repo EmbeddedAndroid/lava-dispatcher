@@ -228,31 +228,40 @@ class UBootSecondaryMedia(Action):
             self.errors = "Missing UUID of the roofs inside the deployed image"
         if 'boot_part' not in self.parameters:
             self.errors = "Missing boot_part for the partition number of the boot files inside the deployed image"
-        self.set_namespace_data(
-            action='uboot-prepare-kernel', label='kernel-type',
-            key='kernel-type', value=self.parameters.get('kernel_type', ''))
 
-        self.set_namespace_data(action=self.name, label='file', key='kernel', value=self.parameters.get('kernel', ''))
-        self.set_namespace_data(action=self.name, label='file', key='ramdisk', value=self.parameters.get('ramdisk', ''))
-        self.set_namespace_data(action=self.name, label='file', key='dtb', value=self.parameters.get('dtb', ''))
-        self.set_namespace_data(action=self.name, label='uuid', key='root', value=self.parameters['root_uuid'])
-        media_params = self.job.device['parameters']['media'][self.parameters['commands']]
-        if self.get_namespace_data(action='storage-deploy', label='u-boot', key='device') not in media_params:
-            self.errors = "%s does not match requested media type %s" % (
-                self.get_namespace_data(
-                    action='storage-deploy', label='u-boot', key='device'), self.parameters['commands']
-            )
-        if not self.valid:
-            return
-        self.set_namespace_data(
-            action=self.name,
-            label='uuid',
-            key='boot_part',
-            value='%s:%s' % (
-                media_params[self.get_namespace_data(action='storage-deploy', label='u-boot', key='device')]['device_id'],
-                self.parameters['boot_part']
-            )
-        )
+    def run(self, connection, max_end_time, args=None):
+        connection = super(UBootSecondaryMedia, self).run(connection,
+                                                          max_end_time,
+                                                          args)
+        if 'commands' in self.parameters:
+            if self.parameters['commands'] in ['usb', 'sd', 'emmc', 'scsi'] :
+                self.set_namespace_data(
+                    action='uboot-prepare-kernel', label='kernel-type',
+                    key='kernel-type', value=self.parameters.get('kernel_type', ''))
+
+                self.set_namespace_data(action='download-action', label='file', key='kernel', value=self.parameters.get('kernel', ''))
+                self.logger.debug("uboot-from-media: kernel: %s", self.parameters.get('kernel', ''))
+                self.set_namespace_data(action='compress-ramdisk', label='file', key='ramdisk', value=self.parameters.get('ramdisk', ''))
+                self.set_namespace_data(action='download-action', label='file', key='dtb', value=self.parameters.get('dtb', ''))
+                self.set_namespace_data(action=self.name, label='uuid', key='root', value=self.parameters['root_uuid'])
+                media_params = self.job.device['parameters']['media'][self.parameters['commands']]
+                if self.get_namespace_data(action='storage-deploy', label='u-boot', key='device') not in media_params:
+                    self.errors = "%s does not match requested media type %s" % (
+                        self.get_namespace_data(
+                            action='storage-deploy', label='u-boot', key='device'), self.parameters['commands']
+                    )
+                if not self.valid:
+                    return
+                self.set_namespace_data(
+                    action=self.name,
+                    label='uuid',
+                    key='boot_part',
+                    value='%s:%s' % (
+                        media_params[self.get_namespace_data(action='storage-deploy', label='u-boot', key='device')]['device_id'],
+                        self.parameters['boot_part']
+                    )
+                )
+        return connection
 
 
 class UBootEnterFastbootAction(BootAction):
