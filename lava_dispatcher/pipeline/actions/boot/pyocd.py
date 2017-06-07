@@ -96,7 +96,7 @@ class FlashPyOCDAction(Action):
         boot = self.job.device['actions']['boot']['methods']['pyocd']
         pyocd_binary = boot['parameters']['command']
         self.errors = infrastructure_error(pyocd_binary)
-        self.base_command = [pyocd_binary]
+        self.base_command = ['flock -o /var/lock/lava-pyocd.lck', pyocd_binary]
         self.base_command.extend(boot['parameters'].get('options', []))
         if self.job.device['board_id'] == '0000000000':
             self.errors = "board_id unset"
