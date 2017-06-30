@@ -238,7 +238,7 @@ class ShellSession(Connection):
         the menu to exit to an unrecognised prompt.
         """
         if not max_end_time:
-            timeout = self.timeout.duration
+            timeout = 180
         else:
             timeout = max_end_time - time.time()
         if timeout < 0:
