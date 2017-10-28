@@ -163,8 +163,6 @@ class ExtractNfsAction(Action):
         if not self.get_namespace_data(
                 action='download-action', label=self.param_key, key='file'):
             self.errors = "no file specified extract as %s" % self.param_key
-        if not os.path.exists('/usr/sbin/exportfs'):
-            raise InfrastructureError("NFS job requested but nfs-kernel-server not installed.")
         if 'prefix' in self.parameters['images'][self.param_key]:
             prefix = self.parameters['images'][self.param_key]['prefix']
             if prefix.startswith('/'):
