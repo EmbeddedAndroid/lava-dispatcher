@@ -142,7 +142,7 @@ class PDUReboot(AdjuvantAction):
         self.results = {'status': 'success'}
         self.job.device.power_state = 'on'
         try:
-            self.wait(connection)
+            pass
         except TestError:
             raise InfrastructureError("%s failed to reset device" % self.key())
         self.data[PDUReboot.key()] = False
