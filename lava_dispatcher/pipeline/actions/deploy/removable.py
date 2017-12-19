@@ -182,12 +182,13 @@ class DDAction(Action):
             self.parameters['download']['tool'], download_options
         )
         dd_cmd = "dd of='%s' bs=4M" % device_path  # busybox dd does not support other flags
+        sync_cmd = "sync"
 
         # set prompt to download prompt to ensure that the secondary deployment has started
         prompt_string = connection.prompt_str
         connection.prompt_str = self.parameters['download']['prompt']
         self.logger.debug("Changing prompt to %s", connection.prompt_str)
-        connection.sendline("%s | %s ; echo %s" % (download_cmd, dd_cmd, SECONDARY_DEPLOYMENT_MSG))
+        connection.sendline("%s | %s | %s ; echo %s" % (download_cmd, dd_cmd, sync_cmd, SECONDARY_DEPLOYMENT_MSG))
         self.wait(connection)
         if not self.valid:
             self.logger.error(self.errors)
