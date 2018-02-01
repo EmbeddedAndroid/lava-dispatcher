@@ -171,7 +171,7 @@ class DDAction(Action):
         # download URL will be positioned in the download command.
         # Providing the download URL as a substitution option gets round this
         ip_addr = dispatcher_ip(self.job.parameters['dispatcher'])
-        download_url = "http://%s/%s/%s" % (
+        download_url = "'http://%s/%s/%s'" % (
             ip_addr, suffix, decompressed_image
         )
         substitutions = {
