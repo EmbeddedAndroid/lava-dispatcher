@@ -128,7 +128,9 @@ class DownloadHandler(Action):  # pylint: disable=too-many-instance-attributes
         super(DownloadHandler, self).cleanup(connection)
 
     def _url_to_fname_suffix(self, path, modify):
-        filename = os.path.basename(self.url.path)
+        raw_fname = os.path.basename(self.url.path)
+        # Replace esaped characters with a dash
+        filename = raw_fname.replace('%2F', '-') 
         parts = filename.split('.')
         # Handle unmodified filename
         # Also files without suffixes, e.g. kernel images
