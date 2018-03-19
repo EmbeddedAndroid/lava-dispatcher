@@ -25,6 +25,7 @@
 
 from lava_dispatcher.pipeline.actions.deploy.image import DeployImages
 from lava_dispatcher.pipeline.actions.deploy.tftp import Tftp
+from lava_dispatcher.pipeline.actions.deploy.dummy import DummyDeploy
 from lava_dispatcher.pipeline.actions.deploy.removable import MassStorage
 from lava_dispatcher.pipeline.actions.deploy.ssh import Ssh
 from lava_dispatcher.pipeline.actions.deploy.fastboot import Fastboot

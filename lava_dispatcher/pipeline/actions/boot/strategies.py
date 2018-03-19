@@ -28,6 +28,7 @@ from lava_dispatcher.pipeline.actions.boot.pyocd import PyOCD
 from lava_dispatcher.pipeline.actions.boot.cmsis_dap import CMSIS
 from lava_dispatcher.pipeline.actions.boot.dfu import DFU
 from lava_dispatcher.pipeline.actions.boot.u_boot import UBoot
+from lava_dispatcher.pipeline.actions.boot.dummy import DummyBoot
 from lava_dispatcher.pipeline.actions.boot.kexec import BootKExec
 from lava_dispatcher.pipeline.actions.boot.ssh import SshLogin, Schroot
 from lava_dispatcher.pipeline.actions.boot.fastboot import BootFastboot
