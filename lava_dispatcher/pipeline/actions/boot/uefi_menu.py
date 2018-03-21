@@ -36,7 +36,11 @@ from lava_dispatcher.pipeline.power import ResetDevice
 from lava_dispatcher.pipeline.protocols.lxc import LxcProtocol
 from lava_dispatcher.pipeline.utils.strings import substitute
 from lava_dispatcher.pipeline.utils.network import dispatcher_ip
-from lava_dispatcher.pipeline.actions.boot import BootAction, AutoLoginAction
+from lava_dispatcher.pipeline.actions.boot import (
+    BootAction,
+    AutoLoginAction,
+    OverlayUnpack,
+)
 from lava_dispatcher.pipeline.actions.boot.environment import ExportDeviceEnvironment
 from lava_dispatcher.pipeline.actions.deploy.lxc import LxcAddDeviceAction
 from lava_dispatcher.pipeline.utils.constants import (
@@ -163,7 +167,6 @@ class UefiMenuSelector(SelectorMenuAction):  # pylint: disable=too-many-instance
         connection.raw_connection.linesep = UEFI_LINE_SEPARATOR
         self.logger.debug("Looking for %s", self.selector.prompt)
         self.wait(connection)
-        connection = super(UefiMenuSelector, self).run(connection, max_end_time, args)
         if self.boot_message:
             self.logger.debug("Looking for %s", self.boot_message)
             connection.prompt_str = self.boot_message
@@ -239,6 +242,8 @@ class UefiMenuAction(BootAction):
             self.internal_pipeline.add_action(UefiMenuSelector())
             self.internal_pipeline.add_action(MenuReset())
             self.internal_pipeline.add_action(AutoLoginAction())
+            if 'transfer_overlay' in parameters:
+                self.internal_pipeline.add_action(OverlayUnpack())
             self.internal_pipeline.add_action(ExportDeviceEnvironment())
         else:
             self.internal_pipeline.add_action(UefiSubstituteCommands())
@@ -248,4 +253,6 @@ class UefiMenuAction(BootAction):
             self.internal_pipeline.add_action(UefiMenuSelector())
             self.internal_pipeline.add_action(MenuReset())
             self.internal_pipeline.add_action(AutoLoginAction())
+            if 'transfer_overlay' in parameters:
+                self.internal_pipeline.add_action(OverlayUnpack())
             self.internal_pipeline.add_action(ExportDeviceEnvironment())
