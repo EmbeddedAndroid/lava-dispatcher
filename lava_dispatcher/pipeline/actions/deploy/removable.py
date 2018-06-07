@@ -188,7 +188,7 @@ class DDAction(Action):
         prompt_string = connection.prompt_str
         connection.prompt_str = self.parameters['download']['prompt']
         self.logger.debug("Changing prompt to %s", connection.prompt_str)
-        connection.sendline("%s | %s | %s ; echo %s" % (download_cmd, dd_cmd, sync_cmd, SECONDARY_DEPLOYMENT_MSG))
+        connection.sendline("%s | %s | %s ; echo %s" % (download_cmd, dd_cmd, sync_cmd, SECONDARY_DEPLOYMENT_MSG), delay=30)
         self.wait(connection)
         if not self.valid:
             self.logger.error(self.errors)
