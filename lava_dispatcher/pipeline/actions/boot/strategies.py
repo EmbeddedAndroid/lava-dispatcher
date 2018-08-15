@@ -25,6 +25,7 @@
 
 from lava_dispatcher.pipeline.actions.boot.qemu import BootQEMU
 from lava_dispatcher.pipeline.actions.boot.pyocd import PyOCD
+from lava_dispatcher.pipeline.actions.boot.nrfjprog import NrfJprog
 from lava_dispatcher.pipeline.actions.boot.cmsis_dap import CMSIS
 from lava_dispatcher.pipeline.actions.boot.dfu import DFU
 from lava_dispatcher.pipeline.actions.boot.u_boot import UBoot
